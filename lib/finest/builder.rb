@@ -9,12 +9,14 @@ module Finest
     def build_by_keys(json = {}, keys = nil)
       k = keys || json&.keys
       raise ArgumentError "keys argument is not an array" unless k&.respond_to?(:each)
-      accessor_builder('to_h',{}) unless self.class.method_defined?(:as_json)
+      accessor_builder('to_h', {}) unless self.class.method_defined?(:as_json)
       json.transform_keys!(&:to_s)
-      k&.reject!{|ky| ky.end_with?('=')}
+      k&.reject! { |ky| ky.end_with?('=') }
       k&.each do |key|
-        self.send("#{key}=",nested_hash_value(json, key.to_s))
-        @to_h&.merge!({key.to_sym => nested_hash_value(json,key.to_s)})
+        elem = nested_hash_value(json, key.to_s)
+        elemfinal = elem.is_a?(Hash) ? self.class.new(elem) : elem
+        self.send("#{key}=", elemfinal)
+        #@to_h&.merge!({key.to_sym => nested_hash_value(json,key.to_s)})
       end
       yield self if block_given?
       self
@@ -23,8 +25,8 @@ module Finest
     # Builds an instance variable as well as its class method accessors from a key value pair.
     def accessor_builder(k, v)
       self.instance_variable_set("@#{k}", v)
-      self.class.send(:define_method, "#{k}", proc {self.instance_variable_get("@#{k}")})
-      self.class.send(:define_method, "#{k}=", proc {|v| self.instance_variable_set("@#{k}", v)})
+      self.class.send(:define_method, "#{k}", proc { self.instance_variable_get("@#{k}") })
+      self.class.send(:define_method, "#{k}=", proc { |v| self.instance_variable_set("@#{k}", v) })
     end
 
     #Goes through a complex Hash nest and gets the value of a passed key.
@@ -41,11 +43,7 @@ module Finest
     #   r = nested_hash_value(a.last, key)
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        if (obj[key].is_a?(Hash))
-          build_by_keys(obj[key])
-        else
-          obj[key]
-        end
+        obj[key]
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|
@@ -55,22 +53,22 @@ module Finest
       end
     end
 
-
-    def method_missing(name,*args)
-      accessor_builder(name.to_s.gsub(/=$/,''), args[0]) if name.to_s =~ /=$/
+    def method_missing(name, *args)
+      accessor_builder(name.to_s.gsub(/=$/, ''), args[0]) if name.to_s =~ /=$/
     end
 
     def attribute_from_inner_key(elem, attr, in_key = nil)
-      {attr.to_sym => nested_hash_value(elem, in_key&.present? ? in_key : attr.to_s)}
+      { attr.to_sym => nested_hash_value(elem, in_key&.present? ? in_key : attr.to_s) }
     end
   end
 
   module Struct
     class Error < StandardError; end
+
     include Helper
 
     def initialize(json = nil)
-      accessor_builder('to_h',{})
+      accessor_builder('to_h', {})
       json&.each do |k, v|
         self.send("#{k}=", v)
       end
@@ -92,8 +90,9 @@ module Finest
 
   module Builder
     class Error < StandardError; end
+
     include Helper
-    alias_method :initialize,:build_by_keys
+    alias_method :initialize, :build_by_keys
   end
 
 end
