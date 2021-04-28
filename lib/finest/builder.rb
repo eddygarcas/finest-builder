@@ -1,6 +1,6 @@
-require "binky/builder/version"
+require "finest/builder/version"
 
-module Binky
+module Finest
   module Helper
 
     # Parses a given json structure looking for specific keys inside the structure.
@@ -41,7 +41,11 @@ module Binky
     #   r = nested_hash_value(a.last, key)
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        obj[key]
+        if (obj[key].is_a?(Hash))
+          build_by_keys(obj[key])
+        else
+          obj[key]
+        end
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|

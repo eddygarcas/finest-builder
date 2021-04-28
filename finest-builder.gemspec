@@ -1,7 +1,7 @@
 require_relative 'lib/finest/builder/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "binky-builder"
+  spec.name          = "finest-builder"
   spec.version       = Finest::Builder::VERSION
   spec.authors       = ["Eduard Garcia Castello"]
   spec.email         = ["eduard@rzilient.club"]

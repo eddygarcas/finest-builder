@@ -1,6 +1,10 @@
-require "test_helper"
+require 'minitest/autorun'
 
-class Binky::ActiveRecordTest < Minitest::Test
+class Changelog
+  include Finest::Helper
+end
+
+class Finest::HelperTest < Minitest::Test
   def setup
     @change_log = {"id" => "5357608",
                    "author" =>
@@ -27,11 +31,15 @@ class Binky::ActiveRecordTest < Minitest::Test
     @change_log = nil
   end
 
-  def test_mocked_activerecord_instance
-    e = ChangelogJson.new.build_by_keys(@change_log)
-    assert_equal ChangelogJson.method_defined?(:as_json), true
-    assert_equal e.as_json, {id: 123}
-    assert_nil e.instance_variable_get(:@to_h)
+  def test_builder_with_real_data
+    e = Changelog.new.build_by_keys(@change_log, ["id", "fromString", "toString", "fieldtype", "avatar"])
+    assert_equal e.toString, "Production"
+    assert_equal e.fromString, "Ready for Production"
   end
 
+  def test_builder_without_keys
+    e = Changelog.new.build_by_keys(@change_log)
+    assert_equal e.items[0]["toString"], "Production"
+    assert_equal e.items[0]["fromString"], "Ready for Production"
+  end
 end

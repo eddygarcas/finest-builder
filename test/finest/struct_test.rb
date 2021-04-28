@@ -1,16 +1,16 @@
 require "test_helper"
 
 class MyStruct
-  include Binky::Struct
+  include Finest::Struct
 end
 
-class Binky::StructTest < Minitest::Test
+class Finest::StructTest < Minitest::Test
   def setup
     @simple_struct = {
         "id" => "5357608",
         "author" => "hocus.pocus",
         "key" => "hocus.pocus",
-        "emailAddress" => "hocus.pocus@binky-builder.com",
+        "emailAddress" => "hocus.pocus@finest-builder.com",
         "displayName" => "Hocus Pocus",
         "active" => true,
         "timeZone" => "Europe/Madrid"

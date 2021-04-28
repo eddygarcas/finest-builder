@@ -1,32 +1,32 @@
 require "test_helper"
 
 class MyAccessorBuilder
-  include Binky::Builder
+  include Finest::Builder
   attr_accessor :id, :text
 end
 
 class MyObjectBuilder
-  include Binky::Builder
+  include Finest::Builder
 end
 
 class ChangelogJson
-  include Binky::Helper
+  include Finest::Helper
 
   def as_json
     return {:id => 123}
   end
 end
 
-class Binky::BuilderTest < Minitest::Test
+class Finest::BuilderTest < Minitest::Test
 
   def test_that_it_has_a_version_number
-    refute_nil ::Binky::Builder::VERSION
+    refute_nil ::Finest::Builder::VERSION
   end
 
   def test_it_does_something_useful
     @obj = Object.new
     class << @obj
-      include Binky::Helper
+      include Finest::Helper
     end
     elem = @obj.build_by_keys({"id" => 123, text: "gathering"}, ["id", :text])
     assert_equal elem.to_h[:id], 123
@@ -35,6 +35,10 @@ class Binky::BuilderTest < Minitest::Test
     assert_equal elem.text, "gathering"
   end
 
+  def test_complex_json
+    element = MyObjectBuilder.new({"client"=> {"ID"=>"1", "ManagementType"=>"iOSUnsupervised"}})
+    pp element
+  end
 
   def test_accessor_builder
     element = MyAccessorBuilder.new({"id" => 123, text: "gathering"}, MyAccessorBuilder.instance_methods(false))
