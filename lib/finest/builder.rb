@@ -2,7 +2,7 @@ require "finest/builder/version"
 
 class String
   def snake_case
-    length > 2 ? gsub(/(\w)[A-Z]/) { |e| "#{e[0]}_#{e[1].downcase}" }.downcase : downcase
+    length > 7 ? gsub(/(\w[A-Z])/) { |e| "#{e[0]}_#{e[1].downcase}" }.downcase : downcase
   end
 end
 
