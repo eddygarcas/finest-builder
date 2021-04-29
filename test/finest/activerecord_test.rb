@@ -9,10 +9,10 @@ class Finest::ActiveRecordTest < Minitest::Test
                         "key" => "hocus.pocus",
                         "emailAddress" => "hocus.pocus@binky-builder.com",
                         "avatarUrls" => {
-                            "48x48" => "http://test.jira.com/secure/useravatar?ownerId=hocus.pocus&avatarId=12221",
-                            "24x24" => "http://test.jira.com/secure/useravatar?size=small&ownerId=ahocus.pocus&avatarId=12221",
-                            "16x16" => "http://test.jira.com/secure/useravatar?size=xsmall&ownerId=hocus.pocus&avatarId=12221",
-                            "32x32" => "http://test.jira.com/secure/useravatar?size=medium&ownerId=hocus.pocus&avatarId=12221"},
+                            "_48x48" => "http://test.jira.com/secure/useravatar?ownerId=hocus.pocus&avatarId=12221",
+                            "_24x24" => "http://test.jira.com/secure/useravatar?size=small&ownerId=ahocus.pocus&avatarId=12221",
+                            "_16x16" => "http://test.jira.com/secure/useravatar?size=xsmall&ownerId=hocus.pocus&avatarId=12221",
+                            "_32x32" => "http://test.jira.com/secure/useravatar?size=medium&ownerId=hocus.pocus&avatarId=12221"},
                         "displayName" => "Hocus Pocus",
                         "active" => true,
                         "timeZone" => "Europe/Madrid"
@@ -28,7 +28,7 @@ class Finest::ActiveRecordTest < Minitest::Test
   end
 
   def test_mocked_activerecord_instance
-    e = ChangelogJson.new.build_by_keys(@change_log)
+    e = ChangelogJson.new(@change_log)
     assert_equal ChangelogJson.method_defined?(:as_json), true
     assert_equal e.as_json, {id: 123}
     assert_nil e.instance_variable_get(:@to_h)

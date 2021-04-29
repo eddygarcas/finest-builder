@@ -10,7 +10,7 @@ class MyObjectBuilder
 end
 
 class ChangelogJson
-  include Finest::Helper
+  include Finest::Builder
 
   def as_json
     return {:id => 123}
@@ -36,8 +36,11 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_complex_json
-    element = MyObjectBuilder.new({"client"=> {"ID"=>"1", "ManagementType"=>"iOSUnsupervised"}})
-    pp element
+    element = MyObjectBuilder.new({"client"=> {"ID"=>1, "ManagementType"=>"iOSUnsupervised"}})
+    assert_equal element.client.to_h[:id], 1
+    assert_equal element.client.to_h[:managementtype], "iOSUnsupervised"
+    assert_equal element.client.id, 1
+    assert_equal element.client.managementtype, "iOSUnsupervised"
   end
 
   def test_accessor_builder

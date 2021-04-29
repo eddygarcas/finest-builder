@@ -7,7 +7,7 @@ end
 class Finest::StructTest < Minitest::Test
   def setup
     @simple_struct = {
-        "id" => "5357608",
+        "_id" => "5357608",
         "author" => "hocus.pocus",
         "key" => "hocus.pocus",
         "emailAddress" => "hocus.pocus@finest-builder.com",
@@ -23,7 +23,8 @@ class Finest::StructTest < Minitest::Test
 
   def test_struct_getting_as_json
     el = MyStruct.new(@simple_struct)
-    assert_equal el.to_h["id"],el.id
+    assert_equal el.to_h["_id"],"5357608"
+    assert_equal el._id,"5357608"
     assert_equal el.to_h["author"],el.author
   end
 

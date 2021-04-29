@@ -13,10 +13,8 @@ module Finest
       json.transform_keys!(&:to_s)
       k&.reject! { |ky| ky.end_with?('=') }
       k&.each do |key|
-        elem = nested_hash_value(json, key.to_s)
-        elemfinal = elem.is_a?(Hash) ? self.class.new(elem) : elem
-        self.send("#{key}=", elemfinal)
-        #@to_h&.merge!({key.to_sym => nested_hash_value(json,key.to_s)})
+        self.send("#{key.downcase}=", nested_hash_value(json, key.to_s))
+        @to_h&.merge!({key.downcase.to_sym => self.send("#{key.downcase}")})
       end
       yield self if block_given?
       self
@@ -43,7 +41,7 @@ module Finest
     #   r = nested_hash_value(a.last, key)
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        obj[key]
+        obj[key].is_a?(Hash) ? self.class.new(obj[key]) : obj[key]
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|
