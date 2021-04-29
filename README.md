@@ -1,4 +1,4 @@
-# Finest::Builder ![Travis](https://travis-ci.org/eddygarcas/finest-builder.svg) [![Gem Version](https://badge.fury.io/rb/finest-builder.svg)](https://badge.fury.io/rb/finest-builder)
+# Finest::Builder ![Travis](https://travis-ci.com/eddygarcas/finest-builder.svg) [![Gem Version](https://badge.fury.io/rb/finest-builder.svg)](https://badge.fury.io/rb/finest-builder)
 
 ## Installation
 
