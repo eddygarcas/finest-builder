@@ -36,11 +36,13 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_complex_json
-    element = MyObjectBuilder.new({"client"=> {"ID"=>1, "ManagementType"=>"iOSUnsupervised"}})
-    assert_equal element.client.to_h[:id], 1
-    assert_equal element.client.to_h[:managementtype], "iOSUnsupervised"
-    assert_equal element.client.id, 1
-    assert_equal element.client.managementtype, "iOSUnsupervised"
+    element = MyObjectBuilder.new({"client"=> {"idSA"=>1,"id"=>3434, "ManagementType"=>"iOSUnsupervised"}})
+    assert_equal element.client.to_h[:id_sa], 1
+    assert_equal element.client.to_h[:id], 3434
+    assert_equal element.client.to_h[:management_type], "iOSUnsupervised"
+    assert_equal element.client.id_sa, 1
+    assert_equal element.client.id, 3434
+    assert_equal element.client.management_type, "iOSUnsupervised"
   end
 
   def test_accessor_builder
