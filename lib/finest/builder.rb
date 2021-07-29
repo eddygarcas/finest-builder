@@ -1,8 +1,10 @@
-require "finest/builder/version"
+# frozen_string_literal: true
+
+require 'finest/builder/version'
 
 class String
   def snake_case
-    length > 7 ? gsub(/(\w[A-Z])/) { |e| "#{e[0]}_#{e[1].downcase}" }.downcase : downcase
+    length > 7 ? strip.gsub(/(\w[A-Z]|\s\S)/) { |e| "#{e[0].strip}_#{e[1].strip.downcase}" }.downcase : strip.downcase
   end
 end
 
@@ -27,13 +29,14 @@ module Finest
     #
     def build_by_keys(json = {}, keys = nil)
       k = keys || json&.keys
-      raise ArgumentError "keys argument is not an array" unless k&.respond_to?(:each)
+      raise ArgumentError 'keys argument is not an array' unless k&.respond_to?(:each)
+
       accessor_builder('to_h', {}) unless self.class.method_defined?(:as_json)
       json.transform_keys!(&:to_s)
       k&.reject! { |ky| ky.end_with?('=') }
       k&.each do |key|
-        self.send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
-        @to_h&.merge!({ key.to_s.snake_case.to_sym => self.send("#{key.to_s.snake_case}") })
+        send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
+        @to_h&.merge!({ key.to_s.snake_case.to_sym => send("#{key.to_s.snake_case}") })
       end
       yield self if block_given?
       self
@@ -41,9 +44,9 @@ module Finest
 
     # Builds an instance variable as well as its class method accessors from a key value pair.
     def accessor_builder(k, v)
-      self.instance_variable_set("@#{k}", v)
-      self.class.send(:define_method, "#{k}", proc { self.instance_variable_get("@#{k}") })
-      self.class.send(:define_method, "#{k}=", proc { |v| self.instance_variable_set("@#{k}", v) })
+      instance_variable_set("@#{k}", v)
+      self.class.send(:define_method, "#{k}", proc { instance_variable_get("@#{k}") })
+      self.class.send(:define_method, "#{k}=", proc { |v| instance_variable_set("@#{k}", v) })
     end
 
     #Goes through a complex Hash nest and gets the value of a passed key.
@@ -78,6 +81,8 @@ module Finest
       accessor_builder(name.to_s.gsub(/=$/, ''), args[0]) if name.to_s =~ /=$/
     end
 
+    def respond_to_missing?; end
+
     def attribute_from_inner_key(elem, attr, in_key = nil)
       { attr.to_sym => nested_hash_value(elem, in_key&.present? ? in_key : attr.to_s) }
     end
@@ -92,29 +97,33 @@ module Finest
     def initialize(json = nil)
       accessor_builder('to_h', {})
       json&.each do |k, v|
-        self.send("#{k}=", v)
+        send("#{k}=", v)
       end
     end
 
     def method_missing(name, *args)
       attribute = name.to_s.start_with?(/\d/) ? "_#{name.to_s}" : name.to_s
       if attribute =~ /=$/
-        if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
-          @to_h[attribute.chop] = self.class.new(args[0])
-        else
-          @to_h[attribute.chop] = args[0]
-        end
+        @to_h[attribute.chop] =
+          if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
+            self.class.new(args[0])
+          else
+            args[0]
+          end
       else
         @to_h[attribute]
       end
     end
+
+    def respond_to_missing?; end
+
   end
 
   module Builder
     class Error < StandardError; end
 
     include Helper
-    alias_method :initialize, :build_by_keys
+    alias initialize build_by_keys
   end
 
 end
