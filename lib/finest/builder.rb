@@ -2,6 +2,7 @@
 
 require 'finest/builder/version'
 
+# Add snake case in String
 class String
   def snake_case
     length > 7 ? strip.gsub(/(\w[A-Z]|\s\S)/) { |e| "#{e[0].strip}_#{e[1].strip.downcase}" }.downcase : strip.downcase
@@ -9,6 +10,7 @@ class String
 end
 
 module Finest
+  # Finest Builder
   module Helper
 
     # Parses a given json structure looking for specific keys inside the structure if passed
@@ -27,29 +29,29 @@ module Finest
     #   e.client.to_h[:id]
     #   e.client.id
     #
-    def build_by_keys(json = {}, keys = nil)
-      k = keys || json&.keys
-      raise ArgumentError 'keys argument is not an array' unless k&.respond_to?(:each)
+    def build_by_keys(**args)
+      k = args[:keys] || args.fetch(:json, {})&.keys
+      raise ArgumentError unless k&.respond_to?(:each)
 
       accessor_builder('to_h', {}) unless self.class.method_defined?(:as_json)
-      json.transform_keys!(&:to_s)
+      args.fetch(:json, {}).transform_keys!(&:to_s)
       k&.reject! { |ky| ky.end_with?('=') }
       k&.each do |key|
-        send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
-        @to_h&.merge!({ key.to_s.snake_case.to_sym => send("#{key.to_s.snake_case}") })
+        send("#{key.to_s.snake_case}=", nested_hash_value(args.fetch(:json, {}), key.to_s))
+        @to_h&.merge!({ key.to_s.snake_case.to_sym => send(key.to_s.snake_case.to_s) })
       end
       yield self if block_given?
       self
     end
 
     # Builds an instance variable as well as its class method accessors from a key value pair.
-    def accessor_builder(k, v)
-      instance_variable_set("@#{k}", v)
-      self.class.send(:define_method, "#{k}", proc { instance_variable_get("@#{k}") })
-      self.class.send(:define_method, "#{k}=", proc { |v| instance_variable_set("@#{k}", v) })
+    def accessor_builder(key, val)
+      instance_variable_set("@#{key}", val)
+      self.class.send(:define_method, key.to_s, proc { instance_variable_get("@#{key}") })
+      self.class.send(:define_method, "#{key}=", proc { |val| instance_variable_set("@#{key}", val) })
     end
 
-    #Goes through a complex Hash nest and gets the value of a passed key.
+    # Goes through a complex Hash nest and gets the value of a passed key.
     # First wil check whether the object has the key? method,
     # which will mean it's a Hash and also if the Hash the method parameter key
     #   if obj.respond_to?(:key?) && obj.key?(key)
@@ -67,7 +69,7 @@ module Finest
     #   r = nested_hash_value(a.last, key)
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        obj[key].is_a?(Hash) ? self.class.new(obj[key]) : obj[key]
+        obj[key].is_a?(Hash) ? self.class.new(json: obj[key]) : obj[key]
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|
@@ -89,14 +91,15 @@ module Finest
 
   end
 
+  # Finest Struct
   module Struct
     class Error < StandardError; end
 
     include Helper
 
-    def initialize(json = nil)
+    def initialize(**args)
       accessor_builder('to_h', {})
-      json&.each do |k, v|
+      args[:json]&.each do |k, v|
         send("#{k}=", v)
       end
     end
@@ -119,6 +122,7 @@ module Finest
 
   end
 
+  # Finest Builder
   module Builder
     class Error < StandardError; end
 

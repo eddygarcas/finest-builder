@@ -32,13 +32,13 @@ class Finest::HelperTest < Minitest::Test
   end
 
   def test_builder_with_real_data
-    e = Changelog.new.build_by_keys(@change_log, ["id", "fromString", "toString", "fieldtype", "avatar"])
+    e = Changelog.new(json: @change_log, keys: ["id", "fromString", "toString", "fieldtype", "avatar"])
     assert_equal e.to_string, "Production"
     assert_equal e.from_string, "Ready for Production"
   end
 
   def test_builder_without_keys
-    e = Changelog.new(@change_log)
+    e = Changelog.new(json: @change_log)
     assert_equal e.items[0]["toString"], "Production"
     assert_equal e.items[0]["fromString"], "Ready for Production"
   end
