@@ -26,12 +26,12 @@ Once initialized just use the accessors as any other instance.
   class Issue
     include Finest::Struct
 
-    def initialize(json = nil)
+    def initialize(**args)
       super json
     end
   end
   
-  issue = Issue.new({id: 1234})
+  issue = Issue.new(json: {id: 1234})
   issue.id # => 1234
 ```
 
@@ -43,11 +43,11 @@ In case not using column names but an array of method names, new accessors would
     include Finest::Helper
   end
     
-  issue = Issue.new.build_by_keys({id: 1234,text: "hocus pocus"},Issue.column_names) # => Issue.column_names = id:
+  issue = Issue.new.build_by_keys(json: {id: 1234,text: "hocus pocus"},keys: Issue.column_names) # => Issue.column_names = id:
   issue.as_json # => {id: 1234}
   issue.to_h # => nil
   
-  issue = Issue.new.build_by_keys({id: 1234,text: "hocus pocus"}) # => Issue.column_names = id:
+  issue = Issue.new.build_by_keys(json: {id: 1234,text: "hocus pocus"}) # => Issue.column_names = id:
   issue.id # => {id: 1234}
   issue.text # => {text: "hocus pocus"}
   issue.as_json #=> {id: 1234,text: "hocus pocus"}
@@ -58,7 +58,7 @@ In case not using column names but an array of method names, new accessors would
 Call *build_by_keys* method once the model has been initialized passing a json message,
 it would *yield* itself as a block in case you want to perform further actions. 
 ```ruby  
-  build_by_keys(json = {},keys = nil) 
+  build_by_keys(**args) 
 ```
 This method would also create an instance variable called *@to_h* contains a pair-value hash as a result. 
 *@to_h* instance variable won't be available if the class inherits from *ActiveRecord::Base* 
