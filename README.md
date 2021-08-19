@@ -27,7 +27,7 @@ Once initialized just use the accessors as any other instance.
     include Finest::Struct
 
     def initialize(**args)
-      super json
+      super args
     end
   end
   
