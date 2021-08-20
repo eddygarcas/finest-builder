@@ -29,15 +29,15 @@ module Finest
     #   e.client.to_h[:id]
     #   e.client.id
     #
-    def build_by_keys(**args)
-      k = args[:keys] || args.fetch(:json, {})&.keys
-      raise ArgumentError unless k&.respond_to?(:each)
+    def build_by_keys(json = {}, keys = [])
+      keys = keys.empty? ? json.keys : keys
+      raise ArgumentError unless keys&.respond_to?(:each)
 
       accessor_builder('to_h', {}) unless self.class.method_defined?(:as_json)
-      args.fetch(:json, {}).transform_keys!(&:to_s)
-      k&.reject! { |ky| ky.end_with?('=') }
-      k&.each do |key|
-        send("#{key.to_s.snake_case}=", nested_hash_value(args.fetch(:json, {}), key.to_s))
+      json.transform_keys!(&:to_s)
+      keys&.reject! { |key| key.end_with?('=') }
+      keys&.each do |key|
+        send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
         @to_h&.merge!({ key.to_s.snake_case.to_sym => send(key.to_s.snake_case.to_s) })
       end
       yield self if block_given?
@@ -69,7 +69,7 @@ module Finest
     #   r = nested_hash_value(a.last, key)
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        obj[key].is_a?(Hash) ? self.class.new(json: obj[key]) : obj[key]
+        obj[key].is_a?(Hash) ? self.class.new(obj[key]) : obj[key]
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|
@@ -97,9 +97,9 @@ module Finest
 
     include Helper
 
-    def initialize(**args)
+    def initialize(json = {}, keys = [])
       accessor_builder('to_h', {})
-      args[:json]&.each do |k, v|
+      json.each do |k, v|
         send("#{k}=", v)
       end
     end

@@ -26,12 +26,12 @@ Once initialized just use the accessors as any other instance.
   class Issue
     include Finest::Struct
 
-    def initialize(**args)
+    def initialize(json = {}, _keys = [])
       super json
     end
   end
   
-  issue = Issue.new(json: {id: 1234})
+  issue = Issue.new({id: 1234})
   issue.id # => 1234
 ```
 
@@ -43,11 +43,11 @@ In case not using column names but an array of method names, new accessors would
     include Finest::Helper
   end
     
-  issue = Issue.new.build_by_keys(json: {id: 1234,text: "hocus pocus"},keys: Issue.column_names) # => Issue.column_names = id:
+  issue = Issue.new.build_by_keys({id: 1234,text: "hocus pocus"}, Issue.column_names) # => Issue.column_names = id:
   issue.as_json # => {id: 1234}
   issue.to_h # => nil
   
-  issue = Issue.new.build_by_keys(json: {id: 1234,text: "hocus pocus"}) # => Issue.column_names = id:
+  issue = Issue.new.build_by_keys({id: 1234,text: "hocus pocus"}) # => Issue.column_names = id:
   issue.id # => {id: 1234}
   issue.text # => {text: "hocus pocus"}
   issue.as_json #=> {id: 1234,text: "hocus pocus"}

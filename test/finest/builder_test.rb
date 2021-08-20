@@ -30,7 +30,7 @@ class Finest::BuilderTest < Minitest::Test
     class << @obj
       include Finest::Helper
     end
-    elem = @obj.build_by_keys(json: {'id' => 123, text: 'gathering'}, keys: ['id', :text])
+    elem = @obj.build_by_keys({'id' => 123, text: 'gathering'}, ['id', :text])
     assert_equal elem.to_h[:id], 123
     assert_equal elem.to_h[:text], 'gathering'
     assert_equal elem.id, 123
@@ -38,7 +38,7 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_complex_json
-    element = MyObjectBuilder.new(json: {'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
+    element = MyObjectBuilder.new({'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
     assert_equal element.client.to_h[:imei], 1
     assert_equal element.client.to_h[:id], 3434
     assert_equal element.client.to_h[:management_type], 'iOSUnsupervised'
@@ -48,7 +48,7 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_replace_whitespace_for_underscore
-    element = MyObjectBuilder.new(json: {'client' => {' IMEI ' => 1, 'id' => 3434, 'wifi mac' => 'dd:45:dd:22:dd:44:fg', 'Management Type' => 'iOSUnsupervised'}})
+    element = MyObjectBuilder.new({'client' => {' IMEI ' => 1, 'id' => 3434, 'wifi mac' => 'dd:45:dd:22:dd:44:fg', 'Management Type' => 'iOSUnsupervised'}})
     assert_equal element.client.to_h[:imei], 1
     assert_equal element.client.to_h[:id], 3434
     assert_equal element.client.to_h[:management_type], 'iOSUnsupervised'
@@ -60,7 +60,7 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_accessor_builder
-    element = MyAccessorBuilder.new(json: {'id' => 123, text: 'gathering'}, keys: MyAccessorBuilder.instance_methods(false))
+    element = MyAccessorBuilder.new({'id' => 123, text: 'gathering'}, MyAccessorBuilder.instance_methods(false))
     assert_equal element.id, 123
     assert_equal element.text, 'gathering'
   end
