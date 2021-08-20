@@ -9,3 +9,5 @@
 /.idea/*
 Gemfile.lock
 /.idea/
+*.gem
+/vendor/
