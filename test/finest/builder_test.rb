@@ -31,17 +31,13 @@ class Finest::BuilderTest < Minitest::Test
       include Finest::Helper
     end
     elem = @obj.build_by_keys({'id' => 123, text: 'gathering'}, ['id', :text])
-    assert_equal elem.to_h[:id], 123
-    assert_equal elem.to_h[:text], 'gathering'
     assert_equal elem.id, 123
     assert_equal elem.text, 'gathering'
   end
 
   def test_complex_json
     element = MyObjectBuilder.new({'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
-    assert_equal element.client.to_h[:imei], 1
-    assert_equal element.client.to_h[:id], 3434
-    assert_equal element.client.to_h[:management_type], 'iOSUnsupervised'
+
     assert_equal element.client.imei, 1
     assert_equal element.client.id, 3434
     assert_equal element.client.management_type, 'iOSUnsupervised'
@@ -49,9 +45,7 @@ class Finest::BuilderTest < Minitest::Test
 
   def test_replace_whitespace_for_underscore
     element = MyObjectBuilder.new({'client' => {' IMEI ' => 1, 'id' => 3434, 'wifi mac' => 'dd:45:dd:22:dd:44:fg', 'Management Type' => 'iOSUnsupervised'}})
-    assert_equal element.client.to_h[:imei], 1
-    assert_equal element.client.to_h[:id], 3434
-    assert_equal element.client.to_h[:management_type], 'iOSUnsupervised'
+
     assert_equal element.client.imei, 1
     assert_equal element.client.id, 3434
     assert_equal element.client.management_type, 'iOSUnsupervised'

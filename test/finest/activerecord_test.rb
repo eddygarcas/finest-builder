@@ -1,5 +1,13 @@
 require "test_helper"
 
+class ChangelogJson
+  include Finest::Builder
+
+  def as_json
+    { id: 123 }
+  end
+end
+
 class Finest::ActiveRecordTest < Minitest::Test
   def setup
     @change_log = {"id" => "5357608",

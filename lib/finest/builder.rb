@@ -33,12 +33,10 @@ module Finest
       keys = keys.empty? ? json.keys : keys
       raise ArgumentError unless keys&.respond_to?(:each)
 
-      accessor_builder('to_h', {}) unless self.class.method_defined?(:as_json)
       json.transform_keys!(&:to_s)
       keys&.reject! { |key| key.end_with?('=') }
       keys&.each do |key|
         send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
-        @to_h&.merge!({ key.to_s.snake_case.to_sym => send(key.to_s.snake_case.to_s) })
       end
       yield self if block_given?
       self
