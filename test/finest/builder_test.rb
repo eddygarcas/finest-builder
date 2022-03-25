@@ -43,6 +43,21 @@ class Finest::BuilderTest < Minitest::Test
     assert_equal element.client.management_type, 'iOSUnsupervised'
   end
 
+  def test_wrap_array
+    element = MyObjectBuilder.new({'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
+
+    elems = if element.nil?
+      []
+    elsif element.respond_to?(:to_ary)
+      element.to_ary || [element]
+    else
+      [element]
+    end
+    assert_equal elems[0].client.imei, 1
+    assert_equal elems[0].client.id, 3434
+    assert_equal elems[0].client.management_type, 'iOSUnsupervised'
+  end
+
   def test_replace_whitespace_for_underscore
     element = MyObjectBuilder.new({'client' => {' IMEI ' => 1, 'id' => 3434, 'wifi mac' => 'dd:45:dd:22:dd:44:fg', 'Management Type' => 'iOSUnsupervised'}})
 

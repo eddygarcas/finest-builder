@@ -81,7 +81,9 @@ module Finest
       accessor_builder(name.to_s.gsub(/=$/, ''), args[0]) if name.to_s =~ /=$/
     end
 
-    def respond_to_missing?; end
+    def respond_to_missing?(method_name, include_private = false)
+      method_name.to_s.start_with?('to_') || super
+    end
 
     def attribute_from_inner_key(elem, attr, in_key = nil)
       { attr.to_sym => nested_hash_value(elem, in_key&.present? ? in_key : attr.to_s) }
