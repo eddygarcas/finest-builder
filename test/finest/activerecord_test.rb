@@ -36,7 +36,7 @@ class Finest::ActiveRecordTest < Minitest::Test
   end
 
   def test_mocked_activerecord_instance
-    e = ChangelogJson.new(json: @change_log)
+    e = ChangelogJson.new(@change_log)
     assert_equal ChangelogJson.method_defined?(:as_json), true
     assert_equal e.as_json, {id: 123}
     assert_nil e.instance_variable_get(:@to_h)

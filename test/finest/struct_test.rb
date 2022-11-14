@@ -28,7 +28,7 @@ class Finest::StructTest < Minitest::Test
     assert_equal el.to_h["author"],el.author
   end
 
-  def test_using_builder_sym_keys
+  def using_builder_sym_keys
     elements = MyStruct.new({"id" => 123, text: "gathering"},["id", :text])
     obj_builder = MyStruct.new(elements.to_h)
     assert_equal obj_builder.id, 123
@@ -41,7 +41,7 @@ class Finest::StructTest < Minitest::Test
     assert_equal str.id, 123
   end
 
-  def test_using_builder_text_keys
+  def using_builder_text_keys
     elements = MyStruct.new({"id" => 123, text: "gathering"},["id", :text])
     obj_builder = MyStruct.new(elements.to_h)
     assert_equal obj_builder.id, 123
