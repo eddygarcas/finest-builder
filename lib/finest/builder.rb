@@ -30,6 +30,7 @@ module Finest
     #   e.client.id
     #
     def build_by_keys(json = {}, keys = [])
+
       keys = keys.empty? ? json.keys : keys
       raise ArgumentError unless keys&.respond_to?(:each)
 
@@ -56,18 +57,31 @@ module Finest
     #
     # If result object is a hash itself, will call constructor method to parse this hash first.
     #
-    #   obj[key].is_a?(Hash) ? self.class.new(obj[key]) : obj[key]
+    #  if obj[key].is_a?(Hash)
+    #           self.class.new(obj[key])
     #
-    # If it's not a Hash will check if it's a Array instead,
-    # checking out whether it responds to a Array.each method or not.
-    #   elsif obj.respond_to?(:each)
+    # If it's an array, will call the constructor method for each element of the array, mapping the result.
     #
-    # For every Array found it make a recursive call to itself passing
-    # the last element of the array and the Key it's looking for.
-    #   r = nested_hash_value(a.last, key)
+    #  elsif (obj[key].is_a?(Array))
+    #
+    # As mentioned before, this methods looks for the key passed as parameter, if it's not found, will
+    # go through the nested hash looking for the key, calling itself recursively.
+    #
+    # This way we can look for specific keys inside a complex hash structure and ignore the rest.
+    # The result of this action will be an object with the keys found and their values.
+    # If eventually the keys was not found, it will assign nil to the instance variable.
+    #
     def nested_hash_value(obj, key)
       if obj.respond_to?(:key?) && obj.key?(key)
-        obj[key].is_a?(Hash) ? self.class.new(obj[key]) : obj[key]
+        if obj[key].is_a?(Hash)
+          self.class.new(obj[key])
+        elsif (obj[key].is_a?(Array))
+          obj[key].map! do |a|
+            a.respond_to?(:key?) ? self.class.new(a) : a
+          end
+        else
+          obj[key]
+        end
       elsif obj.respond_to?(:each)
         r = nil
         obj.find do |*a|
@@ -109,7 +123,7 @@ module Finest
       if attribute =~ /=$/
         @to_h[attribute.chop] =
           if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
-            self.class.new(args[0])
+            self.class.new(json: args[0])
           else
             args[0]
           end
@@ -124,10 +138,12 @@ module Finest
 
   # Finest Builder
   module Builder
+    include Helper
+
     class Error < StandardError; end
 
-    include Helper
     alias initialize build_by_keys
+
   end
 
 end
