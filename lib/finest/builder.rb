@@ -13,7 +13,7 @@ module Finest
   # Finest Builder
   module Helper
 
-    # Parses a given json structure looking for specific keys inside the structure if passed
+    # Parses a given +json+ structure looking for specific +keys+ and creating instance methods for each key.
     #
     # The result it's stored on a instance variable called to_h and accessible through accessor with same name
     # as well as it created a instance method for every key.
@@ -25,7 +25,7 @@ module Finest
     #   e.client.to_h[:id_sa]
     #   e.client.id_sa
     #
-    # Any key value less than three characters will just be down cased.
+    # Any key value less than seven characters will just be down cased.
     #   e.client.to_h[:id]
     #   e.client.id
     #
@@ -35,8 +35,10 @@ module Finest
       raise ArgumentError unless keys&.respond_to?(:each)
 
       json.transform_keys!(&:to_s)
-      keys&.reject! { |key| key.end_with?('=') }
-      keys&.each do |key|
+      keys.reject! { |key| key.end_with?('=') }
+      keys.each do |key|
+        # Next call will provoke a +method_missing+ call that will later call to +accessor_builder+ method
+        # which eventually will define both methods +setter+ and +getter+ for the instance variable.
         send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
       end
       yield self if block_given?
@@ -51,14 +53,13 @@ module Finest
     end
 
     # Goes through a complex Hash nest and gets the value of a passed key.
-    # First wil check whether the object has the key? method,
-    # which will mean it's a Hash and also if the Hash the method parameter key
+    # First wil check whether the object has the +key?+ method,
+    # which means it's a +Hash+. If so, will look for the key and return its value.
     #   if obj.respond_to?(:key?) && obj.key?(key)
     #
     # If result object is a hash itself, will call constructor method to parse this hash first.
     #
-    #  if obj[key].is_a?(Hash)
-    #           self.class.new(obj[key])
+    #  if obj[key].is_a?(Hash) self.class.new(obj[key]) end;
     #
     # If it's an array, will call the constructor method for each element of the array, mapping the result.
     #
@@ -72,17 +73,25 @@ module Finest
     # If eventually the keys was not found, it will assign nil to the instance variable.
     #
     def nested_hash_value(obj, key)
+      # Check if the object is a +Hash+ and if that +Hash+ contains the key passed as parameter.
       if obj.respond_to?(:key?) && obj.key?(key)
+        # If the value of the key is a +Hash+ will call the constructor method to parse this hash first.
+        # This way we can go through the nested hash looking for the key, calling itself recursively.
         if obj[key].is_a?(Hash)
           self.class.new(obj[key])
-        elsif (obj[key].is_a?(Array))
+          # If the value of the key is an +Array+ instead, will map the result of the constructor method for each
+          # element of the array.
+        elsif obj[key].is_a?(Array)
           obj[key].map! do |a|
             a.respond_to?(:key?) ? self.class.new(a) : a
           end
         else
+          # If the value of the key is not a +Hash+ nor an +Array+ will just return the value as it was found.
           obj[key]
         end
       elsif obj.respond_to?(:each)
+        # If the object was an +Array+ in the first place, will recursively call itself for each element
+        # of the array passing the key we are looking for as parameter.
         r = nil
         obj.find do |*a|
           r = nested_hash_value(a.last, key)

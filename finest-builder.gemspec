@@ -3,16 +3,16 @@
 require_relative 'lib/finest/builder/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'finest-builder'
-  spec.version       = Finest::Builder::VERSION
-  spec.authors       = ['Eduard Garcia Castello']
-  spec.email         = %w[edugarcas@gmail.com eduard@rzilient.club]
+  spec.name = 'finest-builder'
+  spec.version = Finest::Builder::VERSION
+  spec.authors = ['Eduard Garcia Castello']
+  spec.email = %w[edugarcas@gmail.com eduard@rzilient.club]
 
-  spec.summary       = %q{Builder modules to create either class ghost methods from a given JSON or a OpenStruct}
-  #spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = 'https://github.com/eddygarcas/finest-builder'
-  spec.license       = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 3.1.2')
+  spec.summary = %q{Builder modules to create either class ghost methods from a given JSON or a OpenStruct}
+  # spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.homepage = 'https://github.com/eddygarcas/finest-builder'
+  spec.license = 'MIT'
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.3.0')
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org/'
 
@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir.chdir(File.expand_path('..', __FILE__)) do
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   end
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.bindir = 'exe'
+  spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 end
