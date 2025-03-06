@@ -39,7 +39,7 @@ module Finest
       keys.each do |key|
         # Next call will provoke a +method_missing+ call that will later call to +accessor_builder+ method
         # which eventually will define both methods +setter+ and +getter+ for the instance variable.
-        send("#{key.to_s.snake_case}=", nested_hash_value(json, key.to_s))
+        send("#{key.to_s.snake_case.gsub(/[^a-zA-Z0-9_]/, "_")}=", nested_hash_value(json, key.to_s))
       end
       yield self if block_given?
       self
@@ -128,7 +128,7 @@ module Finest
     end
 
     def method_missing(name, *args)
-      attribute = name.to_s.start_with?(/\d/) ? "_#{name.to_s}" : name.to_s
+      attribute = name.to_s.start_with?(/\d/) ? "_#{name.to_s}" : name.to_s.gsub(/[^a-zA-Z0-9_]/, "_")
       if attribute =~ /=$/
         @to_h[attribute.chop] =
           if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
