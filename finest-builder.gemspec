@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   # spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage = 'https://github.com/eddygarcas/finest-builder'
   spec.license = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 3.4.1')
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.4.5')
 
   spec.metadata['allowed_push_host'] = 'https://rubygems.org/'
 

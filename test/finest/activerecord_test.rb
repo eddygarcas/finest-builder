@@ -42,4 +42,11 @@ class Finest::ActiveRecordTest < Minitest::Test
     assert_nil e.instance_variable_get(:@to_h)
   end
 
+  def test_mocked_activerecord_instance_multiple_records
+    data = random_json(5)
+    e = ChangelogJson.new(data)
+  end
+
+
+
 end

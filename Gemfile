@@ -5,3 +5,6 @@ gemspec
 
 gem "rake"
 gem "minitest"
+gem "faker"
+gem "minitest-reporters"
+gem "json"

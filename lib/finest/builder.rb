@@ -39,7 +39,7 @@ module Finest
       keys.each do |key|
         # Next call will provoke a +method_missing+ call that will later call to +accessor_builder+ method
         # which eventually will define both methods +setter+ and +getter+ for the instance variable.
-        send("#{key.to_s.snake_case.gsub(/[^a-zA-Z0-9_]/, "_")}=", nested_hash_value(json, key.to_s))
+        send("#{key.to_s.snake_case.gsub(/[^a-zA-Z0-9_]/, "_")}=", nested_stack_value(json, key.to_s))
       end
       yield self if block_given?
       self
@@ -100,6 +100,70 @@ module Finest
       end
     end
 
+    # Iteratively traverses a nested Hash or Array structure to find the value of a given key.
+    #
+    # This method performs the same lookup as +nested_hash_value+, but instead of using recursion,
+    # it uses an explicit stack-based approach to avoid excessive stack depth and improve performance
+    # on deeply nested data structures.
+    #
+    # @param obj [Hash, Array] The initial object to search within.
+    # @param key [Symbol, String] The key to look for within the nested structure.
+    #
+    # @return [Object, nil] Returns the value associated with the given key, applying the same transformation
+    #   logic as the recursive version:
+    #   - If the value is a +Hash+, it will initialize a new instance of the current class with that hash.
+    #   - If the value is an +Array+, it will map each element, creating a new instance for each hash element found.
+    #   - If the value is neither a +Hash+ nor an +Array+, it returns the raw value.
+    #   Returns +nil+ if the key is not found anywhere in the nested structure.
+    #
+    # @example
+    #   data = { user: { info: { name: "Alice" } } }
+    #   nested_stack_value(data, :name)
+    #   # => "Alice"
+    #
+    #   data = { meta: { details: [ { code: 1 }, { code: 2 } ] } }
+    #   nested_stack_value(data, :details)
+    #   # => [#<YourClass:0x...>, #<YourClass:0x...>]
+    #
+    def nested_stack_value(obj, key)
+      # Initialize the stack with the root object to start traversal.
+      stack = [ obj ]
+
+      # Continue until all nested levels have been checked or the key is found.
+      until stack.empty?
+        current = stack.pop
+
+        # If the current object is a Hash and contains the key being searched for.
+        if current.respond_to?(:key?) && current.key?(key)
+          value = current[key]
+
+          # If the value is a Hash, instantiate a new instance of the current class.
+          case value
+          when Hash
+            return self.class.new(value)
+            # If the value is an Array, map each element and instantiate new objects when possible.
+          when Array
+            return value.map! { |a| a.respond_to?(:key?) ? self.class.new(a) : a }
+            # Otherwise, return the raw value directly.
+          else
+            return value
+          end
+        end
+
+        # If no key match was found, continue exploring deeper levels.
+        # Push all nested values into the stack for further iteration.
+        if current.respond_to?(:each)
+          # If current is a Hash, add its values to the stack.
+          current.each { |_, v| stack.push(v) } if current.is_a?(Hash)
+          # If current is an Array, concatenate all its elements into the stack.
+          stack.concat(current) if current.is_a?(Array)
+        end
+      end
+
+      #Return nil if the key was not found anywhere in the structure.
+      nil
+    end
+
     def method_missing(name, *args)
       accessor_builder(name.to_s.gsub(/=$/, ''), args[0]) if name.to_s =~ /=$/
     end
@@ -109,7 +173,7 @@ module Finest
     end
 
     def attribute_from_inner_key(elem, attr, in_key = nil)
-      { attr.to_sym => nested_hash_value(elem, in_key&.present? ? in_key : attr.to_s) }
+      { attr.to_sym => nested_stack_value(elem, in_key&.present? ? in_key : attr.to_s) }
     end
 
   end
@@ -129,7 +193,7 @@ module Finest
 
     def method_missing(name, *args)
       attribute = name.to_s.start_with?(/\d/) ? "_#{name.to_s}" : name.to_s.gsub(/[^a-zA-Z0-9_]/, "_")
-      if attribute =~ /=$/
+      if name =~ /=$/
         @to_h[attribute.chop] =
           if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
             self.class.new(json: args[0])
