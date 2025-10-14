@@ -45,11 +45,17 @@ class Finest::BuilderTest < Minitest::Test
   def test_complex_get_client_only_json
     element = Transform.new(
       {
+
         'client' => {
+          'meta' => {
+            '@odata.count' => 212
+          },
           'IMEI' => 1,
           'id' => 3434,
           'WiFiMAC' => 'dd:45:dd:22:dd:44:fg',
-          'ManagementType' => 'iOSUnsupervised'
+          'ManagementType' => 'iOSUnsupervised',
+          '1' => 'test',
+          '2' => 'second test'
         },
         'lines' => [
           {
@@ -67,6 +73,8 @@ class Finest::BuilderTest < Minitest::Test
     assert_equal element.client.id, 3434
     assert_equal element.client.management_type, 'iOSUnsupervised'
     assert_equal element.client.wifimac, 'dd:45:dd:22:dd:44:fg'
+    assert_equal element.client.meta._odata_count, 212
+    assert_equal element.client._1, 'test'
     assert_equal element.lines&.first&.id, nil
     assert_equal element.lines&.first&.name, nil
   end

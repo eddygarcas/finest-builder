@@ -45,8 +45,33 @@ module Finest
       self
     end
 
-    # Builds an instance variable as well as its class method accessors from a key value pair.
+    # Dynamically defines an instance variable and its corresponding getter/setter methods.
+    #
+    # This method safely transforms the given +key+ into a valid Ruby identifier before creating:
+    # - An instance variable (e.g. `@foo_bar`)
+    # - A getter method (e.g. `def foo_bar; end`)
+    # - A setter method (e.g. `def foo_bar=(val); end`)
+    #
+    # It ensures that keys from external data sources (such as JSON or OData) are valid Ruby identifiers by:
+    # - Removing any leading '@' symbols (e.g. `"@odata.count"` → `"odata_count"`)
+    # - Prefixing an underscore if the name starts with an invalid character (e.g. `"0id"` → `"_0id"`)
+    # - Replacing all other invalid characters (e.g. `.`, `-`, `:`) with underscores
+    #
+    # @param key [String, Symbol] the key name to define as an instance variable and method
+    # @param val [Object] the value to assign to the created instance variable
+    #
+    # @example
+    #   accessor_builder('@odata.count', 42)
+    #   # defines @odata_count, #odata_count, and #odata_count=
+    #   odata_count #=> 42
+    #
+    # @return [void]
     def accessor_builder(key, val)
+      key = key.to_s
+               .sub(/\A@+/, '') # remove leading @ from things like "@odata.count"
+               .sub(/\A([^a-zA-Z_])/, '_\1') # prefix invalid first char (e.g. digits, .)
+               .gsub(/[^a-zA-Z0-9_]/, '_') # replace other invalid chars
+
       instance_variable_set("@#{key}", val)
       self.class.send(:define_method, key.to_s, proc { instance_variable_get("@#{key}") })
       self.class.send(:define_method, "#{key}=", proc { |val| instance_variable_set("@#{key}", val) })
@@ -127,7 +152,7 @@ module Finest
     #
     def nested_stack_value(obj, key)
       # Initialize the stack with the root object to start traversal.
-      stack = [ obj ]
+      stack = [obj]
 
       # Continue until all nested levels have been checked or the key is found.
       until stack.empty?
@@ -160,7 +185,7 @@ module Finest
         end
       end
 
-      #Return nil if the key was not found anywhere in the structure.
+      # Return nil if the key was not found anywhere in the structure.
       nil
     end
 
