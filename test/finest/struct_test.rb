@@ -7,13 +7,14 @@ end
 class Finest::StructTest < Minitest::Test
   def setup
     @simple_struct = {
-        "_id" => "5357608",
-        "author" => "hocus.pocus",
-        "key" => "hocus.pocus",
-        "emailAddress" => "hocus.pocus@finest-builder.com",
-        "displayName" => "Hocus Pocus",
-        "active" => true,
-        "timeZone" => "Europe/Madrid"
+      "_id" => "5357608",
+      "author" => "hocus.pocus",
+      "key" => "hocus.pocus",
+      "emailAddress" => "hocus.pocus@finest-builder.com",
+      "displayName" => "Hocus Pocus",
+      "@wifi+Mac" => "34:34:23:32:34",
+      "active" => true,
+      "timeZone" => "Europe/Madrid"
     }
   end
 
@@ -23,13 +24,14 @@ class Finest::StructTest < Minitest::Test
 
   def test_struct_getting_as_json
     el = MyStruct.new(@simple_struct)
-    assert_equal el.to_h["_id"],"5357608"
-    assert_equal el._id,"5357608"
-    assert_equal el.to_h["author"],el.author
+    assert_equal el.to_h["_id"], "5357608"
+    assert_equal el._id, "5357608"
+    assert_equal el._wifi_Mac, "34:34:23:32:34"
+    assert_equal el.to_h["author"], el.author
   end
 
   def using_builder_sym_keys
-    elements = MyStruct.new({"id" => 123, text: "gathering"},["id", :text])
+    elements = MyStruct.new({ "id" => 123, text: "gathering" }, [ "id", :text ])
     obj_builder = MyStruct.new(elements.to_h)
     assert_equal obj_builder.id, 123
     assert_equal obj_builder.text, "gathering"
@@ -42,14 +44,14 @@ class Finest::StructTest < Minitest::Test
   end
 
   def using_builder_text_keys
-    elements = MyStruct.new({"id" => 123, text: "gathering"},["id", :text])
+    elements = MyStruct.new({ "id" => 123, text: "gathering" }, [ "id", :text ])
     obj_builder = MyStruct.new(elements.to_h)
     assert_equal obj_builder.id, 123
     assert_equal obj_builder.text, "gathering"
   end
 
   def test_builder_directly
-    element = MyStruct.new({"id" => 123, text: "gathering"})
+    element = MyStruct.new({ "id" => 123, text: "gathering" })
     assert_equal element.id, 123
     assert_equal element.text, "gathering"
   end

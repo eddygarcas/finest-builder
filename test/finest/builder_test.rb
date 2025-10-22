@@ -27,16 +27,18 @@ class Finest::BuilderTest < Minitest::Test
 
   def test_it_does_something_useful
     @obj = Object.new
+
     class << @obj
       include Finest::Helper
     end
-    elem = @obj.build_by_keys({'id' => 123, text: 'gathering'}, ['id', :text])
+
+    elem = @obj.build_by_keys({ 'id' => 123, text: 'gathering' }, [ 'id', :text ])
     assert_equal elem.id, 123
     assert_equal elem.text, 'gathering'
   end
 
   def test_complex_json
-    element = MyObjectBuilder.new({'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
+    element = MyObjectBuilder.new({ 'client' => { 'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised' } })
 
     assert_equal element.client.imei, 1
     assert_equal element.client.id, 3434
@@ -44,14 +46,14 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_wrap_array
-    element = MyObjectBuilder.new({'client' => {'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised'}})
+    element = MyObjectBuilder.new({ 'client' => { 'IMEI' => 1, 'id' => 3434, 'WiFiMAC' => 'dd:45:dd:22:dd:44:fg', 'ManagementType' => 'iOSUnsupervised' } })
 
     elems = if element.nil?
       []
     elsif element.respond_to?(:to_ary)
-      element.to_ary || [element]
+      element.to_ary || [ element ]
     else
-      [element]
+      [ element ]
     end
     assert_equal elems[0].client.imei, 1
     assert_equal elems[0].client.id, 3434
@@ -59,17 +61,31 @@ class Finest::BuilderTest < Minitest::Test
   end
 
   def test_replace_whitespace_for_underscore
-    element = MyObjectBuilder.new({'client' => {' IMEI ' => 1, 'id' => 3434, 'wifi mac' => 'dd:45:dd:22:dd:44:fg', 'Management Type' => 'iOSUnsupervised'}})
-
+    element = MyObjectBuilder.new(
+      {
+        'client' => {
+          ' IMEI ' => 1,
+          'id' => 3434,
+          'wifi mac' => 'dd:45:dd:22:dd:44:fg',
+          'wifiMacAddr' => 'dd:45:dd:22:dd:44:fg',
+          'wifi+mac+lol' => 'dd:45:dd:22:dd:44:fg',
+          'wifiAd' => 'dd:45:dd:22:dd:44:fg',
+          'Management Type' => 'iOSUnsupervised'
+        }
+      }
+    )
     assert_equal element.client.imei, 1
     assert_equal element.client.id, 3434
     assert_equal element.client.management_type, 'iOSUnsupervised'
     assert_equal element.client.wifi_mac, 'dd:45:dd:22:dd:44:fg'
+    assert_equal element.client.wifi_mac_addr, 'dd:45:dd:22:dd:44:fg'
+    assert_equal element.client.wifi_mac_lol, 'dd:45:dd:22:dd:44:fg'
+    assert_equal element.client.wifiad, 'dd:45:dd:22:dd:44:fg'
 
   end
 
   def test_accessor_builder
-    element = MyAccessorBuilder.new({'id' => 123, text: 'gathering'}, MyAccessorBuilder.instance_methods(false))
+    element = MyAccessorBuilder.new({ 'id' => 123, text: 'gathering' }, MyAccessorBuilder.instance_methods(false))
     assert_equal element.id, 123
     assert_equal element.text, 'gathering'
   end

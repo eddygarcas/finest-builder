@@ -4,15 +4,24 @@ require 'finest/builder/version'
 
 # Add snake case in String
 class String
-  def snake_case
-    length > 7 ? strip.gsub(/(\w[A-Z]|\s\S)/) { |e| "#{e[0].strip}_#{e[1].strip.downcase}" }.downcase : strip.downcase
+  def snake_case(size: 7, sep: nil)
+    if (length > size)
+      str = strip.dup
+      str.tr!(sep, ' ') if sep
+      str.gsub!(/\s+/, '_')
+      str.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+      str.downcase!
+      str.gsub!(/[^a-z0-9_]/, '_')
+      str
+    else
+      strip.downcase
+    end
   end
 end
 
 module Finest
   # Finest Builder
   module Helper
-
     # Parses a given +json+ structure looking for specific +keys+ and creating instance methods for each key.
     #
     # The result it's stored on a instance variable called to_h and accessible through accessor with same name
@@ -30,7 +39,6 @@ module Finest
     #   e.client.id
     #
     def build_by_keys(json = {}, keys = [])
-
       keys = keys.empty? ? json.keys : keys
       raise ArgumentError unless keys&.respond_to?(:each)
 
@@ -39,7 +47,7 @@ module Finest
       keys.each do |key|
         # Next call will provoke a +method_missing+ call that will later call to +accessor_builder+ method
         # which eventually will define both methods +setter+ and +getter+ for the instance variable.
-        send("#{key.to_s.snake_case.gsub(/[^a-zA-Z0-9_]/, "_")}=", nested_stack_value(json, key.to_s))
+        send("#{key.to_s.snake_case}=", nested_stack_value(json, key.to_s))
       end
       yield self if block_given?
       self
@@ -152,7 +160,7 @@ module Finest
     #
     def nested_stack_value(obj, key)
       # Initialize the stack with the root object to start traversal.
-      stack = [obj]
+      stack = [ obj ]
 
       # Continue until all nested levels have been checked or the key is found.
       until stack.empty?
@@ -177,12 +185,12 @@ module Finest
 
         # If no key match was found, continue exploring deeper levels.
         # Push all nested values into the stack for further iteration.
-        if current.respond_to?(:each)
-          # If current is a Hash, add its values to the stack.
-          current.each { |_, v| stack.push(v) } if current.is_a?(Hash)
-          # If current is an Array, concatenate all its elements into the stack.
-          stack.concat(current) if current.is_a?(Array)
-        end
+        next unless current.respond_to?(:each)
+
+        # If current is a Hash, add its values to the stack.
+        current.each { |_, v| stack.push(v) } if current.is_a?(Hash)
+        # If current is an Array, concatenate all its elements into the stack.
+        stack.concat(current) if current.is_a?(Array)
       end
 
       # Return nil if the key was not found anywhere in the structure.
@@ -200,7 +208,6 @@ module Finest
     def attribute_from_inner_key(elem, attr, in_key = nil)
       { attr.to_sym => nested_stack_value(elem, in_key&.present? ? in_key : attr.to_s) }
     end
-
   end
 
   # Finest Struct
@@ -209,7 +216,7 @@ module Finest
 
     include Helper
 
-    def initialize(json = {}, keys = [])
+    def initialize(json = {}, _keys = [])
       accessor_builder('to_h', {})
       json.each do |k, v|
         send("#{k}=", v)
@@ -217,7 +224,7 @@ module Finest
     end
 
     def method_missing(name, *args)
-      attribute = name.to_s.start_with?(/\d/) ? "_#{name.to_s}" : name.to_s.gsub(/[^a-zA-Z0-9_]/, "_")
+      attribute = name.to_s.start_with?(/\d/) ? "_#{name}" : name.to_s.gsub(/[^a-zA-Z0-9_]/, '_')
       if name =~ /=$/
         @to_h[attribute.chop] =
           if args[0].respond_to?(:key?) || args[0].is_a?(Hash)
@@ -231,7 +238,6 @@ module Finest
     end
 
     def respond_to_missing?; end
-
   end
 
   # Finest Builder
@@ -241,7 +247,5 @@ module Finest
     class Error < StandardError; end
 
     alias initialize build_by_keys
-
   end
-
 end
